@@ -45,7 +45,16 @@
       <main>
         <h1>Image Adjustment</h1>
         <div class="imageEditor">
-          <canvas></canvas>
+          <canvas id="imageCanvas"></canvas>
+          <div id="drop-area">
+            <p id="drop-text">Import image or drag & drop here</p>
+            <input
+              type="file"
+              id="imageInput"
+              accept="image/*"
+              style="display: none"
+            />
+          </div>
         </div>
         <ul class="subMenu">
           <li><button>Tous</button></li>
@@ -64,7 +73,75 @@
         </ul>
       </main>
 
-      <div></div>
+      <div class="settings">
+        <div class="block"></div>
+        <div class="block"></div>
+      </div>
     </div>
+
+    <script>
+      document
+        .getElementById("drop-area")
+        .addEventListener("click", function () {
+          document.getElementById("imageInput").click();
+        });
+
+      document
+        .getElementById("imageInput")
+        .addEventListener("change", function (event) {
+          handleFiles(event.target.files);
+        });
+
+      document
+        .getElementById("drop-area")
+        .addEventListener("dragover", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.style.background = "#e1e7f0";
+        });
+
+      document
+        .getElementById("drop-area")
+        .addEventListener("dragleave", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.style.background = "";
+        });
+
+      document
+        .getElementById("drop-area")
+        .addEventListener("drop", function (event) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.style.background = "";
+          let dt = event.dataTransfer;
+          let files = dt.files;
+          handleFiles(files);
+        });
+
+      function handleFiles(files) {
+        if (files.length === 0) return;
+        const file = files[0];
+        if (file.type.startsWith("image/")) {
+          const reader = new FileReader();
+          reader.onload = function (e) {
+            const img = new Image();
+            img.onload = function () {
+              const canvas = document.getElementById("imageCanvas");
+              canvas.width = img.width;
+              canvas.height = img.height;
+              const ctx = canvas.getContext("2d");
+              ctx.drawImage(img, 0, 0);
+              canvas.style.display = "block";
+              document.getElementById("drop-text").style.display = "none";
+            };
+            img.src = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        } else {
+          alert("Please drop an image file.");
+        }
+      }
+    </script>
   </body>
 </html>
