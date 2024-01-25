@@ -24,11 +24,14 @@
     />
   </head>
   <body>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <div class="page">
       <nav>
         <ul class="frame">
           <li>
-            <button><i class="fa-regular fa-image"></i></button>
+            <button class="isSelected">
+              <i class="fa-regular fa-image"></i>
+            </button>
           </li>
           <li>
             <button><i class="fa-regular fa-image"></i></button>
@@ -43,7 +46,7 @@
       </nav>
 
       <main>
-        <h1>Image Adjustment</h1>
+        <h1>PicsAI <i class="fa-brands fa-pix"></i></h1>
         <div class="imageEditor">
           <canvas id="imageCanvas"></canvas>
           <div id="drop-area">
@@ -74,8 +77,14 @@
       </main>
 
       <div class="settings">
-        <div class="block"></div>
-        <div class="block"></div>
+        <div class="block" id="histogram-block">
+          <canvas id="histogram_L"></canvas>
+          <canvas id="histogram_RGB"></canvas>
+        </div>
+        <div class="block">
+          <p>Propriétés de l'image</p>
+          <div id="image-info" class="image-info"></div>
+        </div>
       </div>
     </div>
 
@@ -134,6 +143,16 @@
               ctx.drawImage(img, 0, 0);
               canvas.style.display = "block";
               document.getElementById("drop-text").style.display = "none";
+              //Histogram
+
+              const histogramData_L = calculateHistogramFromCanvas(imageCanvas);
+              displayHistogram(histogramData_L, "histogram_L");
+
+              const histogramData_RGB =
+                calculateRGBHistogramsFromCanvas(imageCanvas);
+              displayRGBHistograms(histogramData_RGB, "histogram_RGB");
+
+              getImageInfoFromCanvas(imageCanvas);
             };
             img.src = e.target.result;
           };
@@ -141,6 +160,192 @@
         } else {
           alert("Please drop an image file.");
         }
+      }
+
+      function calculateHistogramFromCanvas(canvas) {
+        const ctx = canvas.getContext("2d");
+
+        // S'assure que le canvas contient bien une image
+        if (canvas.width === 0 || canvas.height === 0) {
+          console.error("Le canvas est vide.");
+          return [];
+        }
+
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Création d'un tableau pour les valeurs de l'histogramme
+        let histogram = new Array(256).fill(0);
+
+        for (let i = 0; i < data.length; i += 4) {
+          // Utilisation de la luminance pour un histogramme en niveaux de gris
+          const brightness = Math.floor(
+            0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2]
+          );
+          histogram[brightness]++;
+        }
+
+        return histogram;
+      }
+      function calculateRGBHistogramsFromCanvas(canvas) {
+        const ctx = canvas.getContext("2d");
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+
+        // Créer trois tableaux pour les histogrammes RGB
+        let histograms = {
+          red: new Array(256).fill(0),
+          green: new Array(256).fill(0),
+          blue: new Array(256).fill(0),
+        };
+
+        for (let i = 0; i < data.length; i += 4) {
+          histograms.red[data[i]]++;
+          histograms.green[data[i + 1]]++;
+          histograms.blue[data[i + 2]]++;
+        }
+
+        return histograms;
+      }
+
+      function displayHistogram(histogramData, canvasId) {
+        const ctx = document.getElementById(canvasId).getContext("2d");
+
+        if (histogramChart_L) {
+          histogramChart_L.destroy();
+        }
+
+        const labels = Array.from({ length: 256 }, (_, i) => i.toString());
+        histogramChart_L = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Histogram",
+                data: histogramData,
+                backgroundColor: "rgba(255, 255, 255, 0.2)",
+                borderColor: "rgba(255, 255, 255, 1)",
+                borderWidth: 1,
+                barThickness: 0.25,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true,
+              },
+            },
+            plugins: {
+              legend: {
+                display: false, // Cela masquera la légende du graphique
+              },
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+      }
+
+      function displayRGBHistograms(histograms, canvasId) {
+        const ctx = document.getElementById(canvasId).getContext("2d");
+
+        // Détruire l'ancien graphique s'il existe
+        if (histogramChart_RGB) {
+          histogramChart_RGB.destroy();
+        }
+
+        const labels = Array.from({ length: 256 }, (_, i) => i.toString());
+        histogramChart_RGB = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: "Red",
+                data: histograms.red,
+                backgroundColor: "rgba(255, 0, 0, 0.2)",
+                borderColor: "red",
+                borderWidth: 1,
+                barThickness: 0.25,
+              },
+              {
+                label: "Green",
+                data: histograms.green,
+                backgroundColor: "rgba(0, 255, 0, 0.2)",
+                borderColor: "green",
+                borderWidth: 1,
+                barThickness: 0.25,
+              },
+              {
+                label: "Blue",
+                data: histograms.blue,
+                backgroundColor: "rgba(0, 0, 255, 0.2)",
+                borderColor: "blue",
+                borderWidth: 1,
+                barThickness: 0.25,
+              },
+            ],
+          },
+          options: {
+            scales: {
+              x: {
+                stacked: false,
+              },
+              y: {
+                beginAtZero: true,
+                stacked: false,
+              },
+            },
+            plugins: {
+              legend: {
+                display: false, // Cela masquera la légende du graphique
+              },
+            },
+            responsive: true,
+            maintainAspectRatio: false,
+          },
+        });
+      }
+
+      function getImageInfoFromCanvas(canvas) {
+        const ctx = canvas.getContext("2d");
+
+        // Assure-toi que quelque chose est dessiné sur le canvas
+        if (ctx) {
+          const width = canvas.width;
+          const height = canvas.height;
+
+          // Pour obtenir la taille du fichier, tu peux convertir le canvas en blob
+          canvas.toBlob(function (blob) {
+            const fileSize = blob.size; // Taille du fichier en octets
+            const fileSizeInKB = (fileSize / 1024).toFixed(2); // Conversion en kilo-octets
+
+            // Affiche les informations dans le bloc inférieur droit
+            const infoBlock = document.getElementById("image-info"); // Assure-toi d'avoir un élément avec cet ID
+            infoBlock.innerHTML = `<p>Largeur: ${width}px</p>
+                             <p>Hauteur: ${height}px</p>
+                             <p>Taille: ${fileSizeInKB}KB</p>
+                             <p>Profil couleur: RGB</p>`; // Les images canvas sont toujours en RGB
+          });
+        }
+      }
+
+      //-------- Init
+
+      let histogramChart_L = null;
+      let histogramChart_RGB = null;
+      // Suppose que ton canvas avec l'image a déjà été dessiné quelque part ailleurs dans ton code
+      const imageCanvas = document.getElementById("imageCanvas");
+
+      // S'assure que l'image est bien chargée dans le canvas
+      if (imageCanvas && imageCanvas.getContext) {
+        const histogramData_L = calculateHistogramFromCanvas(imageCanvas);
+        displayHistogram(histogramData_L, "histogram_L");
+        const histogramData_RGB = calculateRGBHistogramsFromCanvas(imageCanvas);
+        displayRGBHistograms(histogramData_RGB, "histogram_RGB");
+        getImageInfoFromCanvas(imageCanvas);
       }
     </script>
   </body>
