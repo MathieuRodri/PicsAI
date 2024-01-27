@@ -65,7 +65,7 @@
         </ul>
         <ul class="options">
           <li>
-            <button><img src="#" alt="option1" /></button>
+            <button id="btn-option1"><img src="#" alt="option1" /></button>
           </li>
           <li>
             <button><img src="#" alt="option2" /></button>
@@ -347,6 +347,34 @@
         displayRGBHistograms(histogramData_RGB, "histogram_RGB");
         getImageInfoFromCanvas(imageCanvas);
       }
+
+      document
+        .getElementById("btn-option1")
+        .addEventListener("click", function () {
+          const canvas = document.getElementById("imageCanvas");
+          const image = canvas.toDataURL("image/jpeg"); // Convertir le canvas en base64
+
+          // Envoie de la requête AJAX
+          $.ajax({
+            type: "POST", // Vous pouvez utiliser POST ou GET en fonction de vos besoins.
+            url: `/execute_background_script/${encodeURIComponent(image)}/1/`, // Utilisez encodeURIComponent pour l'IMAGE_PATH
+            success: function (response) {
+              // Mettez à jour le canvas avec l'image reçue
+              const img = new Image();
+              img.onload = function () {
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext("2d");
+                ctx.drawImage(img, 0, 0);
+              };
+              img.src = `data:image/jpeg;base64,${response.image_data}`;
+            },
+            error: function (error) {
+              // Gérez les erreurs ici si nécessaire.
+              console.error("Erreur lors de la requête AJAX : " + error);
+            },
+          });
+        });
     </script>
   </body>
 </html>

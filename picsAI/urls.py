@@ -17,9 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from app.views import home
+from app import views 
 
 urlpatterns = [
-    path('', home, name='home'),
+    path('', views.home, name='home'),
+    path('execute_background_script/<str:IMAGE_PATH>/<int:operation_id>/', views.background_operation, name='execute_background_script'),
     path("admin/", admin.site.urls),
 ]
