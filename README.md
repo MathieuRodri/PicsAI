@@ -84,6 +84,8 @@ urllib3==2.1.0`
 ### Pour commencer
 Téléchargez d'abord un checkpoint du [modèle SAM](https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth)
 
+Ce modèle devra en suite être placé à la racine du projet `(PicsAI/sam_vit_h_4b8939.pth)`
+
 ## Lancement de l'Interface Django 🚀
 Pour lancer l'interface utilisateur Django :
 
