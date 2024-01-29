@@ -21,6 +21,6 @@ from app import views
 
 urlpatterns = [
     path('', views.home, name='home'),
-    path('execute_background_script/<str:IMAGE_PATH>/<int:operation_id>/', views.background_operation, name='execute_background_script'),
+    path('execute_background_script/<str:operation_id>/', views.background_operation, name='background_operation'),
     path("admin/", admin.site.urls),
 ]

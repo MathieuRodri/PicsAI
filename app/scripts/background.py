@@ -4,8 +4,9 @@ import cv2
 from ultralytics import YOLO
 import torch
 from segment_anything import SamPredictor, sam_model_registry
-from google.colab.patches import cv2_imshow
 import argparse
+import base64
+import io
 
 # Configuration et initialisation des modèles
 def initialize_models():
@@ -14,7 +15,7 @@ def initialize_models():
     Retourne les modèles YOLO et SAM.
     """
     model = YOLO('yolov8m.pt')  # Assurez-vous que le modèle YOLO est correctement spécifié
-    sam = sam_model_registry["default"](checkpoint="/content/drive/MyDrive/sam_vit_h_4b8939.pth").to(device=torch.device('cuda:0'))
+    sam = sam_model_registry["default"](checkpoint="sam_vit_h_4b8939.pth").to(device=torch.device('cpu'))
     return model, SamPredictor(sam)
 
 # Initialisation des modèles
@@ -109,6 +110,32 @@ def replace_background_with_color(image, masks, color):
 
     return background
 
+def apply_grayscale_except_masks(image, masks):
+    """
+    Convertit l'image en noir et blanc, sauf sur les zones définies par les masques.
+
+    Args:
+    - image: Image d'origine.
+    - masks: Liste des masques à préserver en couleur.
+
+    Retourne:
+    - grayscale_image: Image en noir et blanc avec les masques préservés en couleur.
+    """
+    # Convertir l'image en noir et blanc
+    grayscale_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    grayscale_image = cv2.cvtColor(grayscale_image, cv2.COLOR_GRAY2BGR)
+
+    # Superposer les zones masquées originales sur l'image en noir et blanc
+    for mask in masks:
+        if isinstance(mask, torch.Tensor):
+            mask_np = mask.cpu().numpy()
+        else:
+            mask_np = mask
+
+        grayscale_image[mask_np > 0] = image[mask_np > 0]
+
+    return grayscale_image
+
 # Fonction pour dessiner les masques sur l'image
 def draw_masks(image, masks, boxes):
     """
@@ -146,7 +173,6 @@ def display_results(image):
 
 # Fonction principale
 def main(IMAGE_PATH, operation_id):
-    print(f"Operation ID: {operation_id}")
     image = cv2.imread(IMAGE_PATH)
     height, width, _ = image.shape
 
@@ -198,27 +224,41 @@ def main(IMAGE_PATH, operation_id):
     # Application des masques et affichage des résultats
     #segmented_image = draw_masks(image, masks.to('cpu'), boxes)
 
-    if operation_id == 1:
-        res = apply_blur_except_masks(IMAGE_PATH, filled_masks, 2)
-    elif operation_id == 2:
-        res = apply_blur_except_masks(IMAGE_PATH, filled_masks, 5)
-    elif operation_id == 3:
-        res = apply_blur_except_masks(IMAGE_PATH, filled_masks, 10)
-    elif operation_id == 4:
-        res = replace_background_with_color(IMAGE_PATH, filled_masks, (255, 128, 0))
-    elif operation_id == 5:
-        res = replace_background_with_color(IMAGE_PATH, filled_masks, (255, 128, 128))
-    elif operation_id == 6:
-        res = replace_background_with_color(IMAGE_PATH, filled_masks, (255, 128, 255))
+    res = None
+
+    if operation_id == '1':
+        res = apply_blur_except_masks(image, filled_masks, 5)
+    elif operation_id == '2':
+        res = apply_blur_except_masks(image, filled_masks, 11)
+    elif operation_id == '3':
+        res = apply_blur_except_masks(image, filled_masks, 21)
+    elif operation_id == '4':
+        res = apply_grayscale_except_masks(image, filled_masks)
+    elif operation_id == '5':
+        res = replace_background_with_color(image, filled_masks, (255, 128, 0))
+    elif operation_id == '6':
+        res = replace_background_with_color(image, filled_masks, (255, 128, 128))
+    elif operation_id == '7':
+        res = replace_background_with_color(image, filled_masks, (255, 128, 255))
     else:
         res = "Opération non reconnue"
     
-    # Utilisez res comme nécessaire ou renvoyez-le
-    return res
+    # Convertir l'image en bytes
+    _, buf = cv2.imencode('.jpg', res)
+    image_bytes = io.BytesIO(buf).getvalue()
+
+    # Encoder en base64 et décoder en chaîne de caractères
+    image_base64 = base64.b64encode(image_bytes).decode('utf-8')
+
+    return image_base64
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("IMAGE_PATH", type=str, help="Path to the image")
-    parser.add_argument("operation_id", type=int, help="Operation ID to pass to the script")
+    parser.add_argument("operation_id", type=str, help="Operation ID to pass to the script")
     args = parser.parse_args()
+
+    with open('test.txt', 'w') as fp:
+        fp.write(args.IMAGE_PATH, args.operation_id)
+
     main(args.IMAGE_PATH, args.operation_id)

@@ -2,7 +2,9 @@
     --bgColor: #222;
     --fontColor: #fff;
     --primaryColor: #0059ff;
+    --primaryColorDark: #0049d1;
     --secondaryColor: #333;
+    --red: #e94444;
     --borderRadius: 9999rem;
     --borderRadius2: 2rem;
     --gap: 1.3rem;
@@ -18,15 +20,42 @@
     font-family: 'Roboto', sans-serif;
 }
 
+/* width */
+::-webkit-scrollbar {
+    width: 0.5rem;
+    height: 0.5rem;
+  }
+  
+  /* Track */
+  ::-webkit-scrollbar-track {
+    box-shadow: inset 0 0 5px grey; 
+    border-radius: 10px;
+  }
+   
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #000; 
+    border-radius: 10px;
+  }
+  
+  /* Handle on hover */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #fff; 
+  }
+
 button{
     background-color: var(--secondaryColor);
     border: none;
     border-radius: var(--borderRadius);
     padding: 1rem;
     transition: 100ms ease-in-out;
+    cursor: pointer;
 }
 button:hover, button.isSelected{
     background-color: var(--primaryColor);
+}
+button.isSelected:hover{
+    background-color: var(--primaryColorDark);
 }
 
 body{
@@ -34,15 +63,30 @@ body{
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: relative;
+}
+body::before{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url(../images/bgTexture.gif);
+    background-size: cover;
+    background-attachment: fixed;
+    filter: contrast(2) blur(1rem);
+    opacity: 0.3;
+    z-index: -1;
 }
 
 .page{
     width: 100%;
     height: 100vh;
     max-width: 2000px;
-    padding: var(--gap);
+    padding-inline: var(--gap);
     display: flex;
-    gap: var(--gap);
+    gap: calc(var(--gap) / 2);
     overflow: hidden;
 }
 
@@ -75,27 +119,70 @@ body{
     background-color: none;
     border-radius: var(--borderRadius);
 }
+.page nav button.primary-btn{
+    padding: 0;
+    position: relative;
+}
+.page nav button.primary-btn:before{
+    content: 'IA';
+    position: absolute;
+    border-radius: var(--borderRadius);
+    background-color: var(--primaryColor);
+    bottom: 15%;
+    right: 15%;
+    padding: 0.3rem;
+    line-height: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    font-style: italic;
+    transform: translate(50%, 50%);
+}
+.page nav button.primary-btn img{
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    overflow: hidden;
+    border-radius: var(--borderRadius);
+}
 
 .page nav i{
     font-size: 1.4rem;
 }
-
 /**  MAIN BLOCK **/
 
 .page main{
     flex: 1;
-    overflow: scroll;
+    min-height: fit-content;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: var(--gap);
+    padding-inline: calc(var(--gap) / 2);
+    padding-block: 2rem;
 }
 
 .page main .imageEditor{
+    flex: 1 0 auto;
     width: 100%;
-    aspect-ratio: 1;
+    aspect-ratio: 21/9;
     background-color: var(--secondaryColor);
     border-radius: var(--borderRadius2);
     overflow: hidden;
+    cursor: pointer;
+    position: relative;
+}
+.page main .imageEditor img{
+    display: none;
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: contrast(2) blur(3rem);
+    z-index: 9999;
+    will-change: contents;
 }
 
 .page main #imageCanvas{
@@ -114,14 +201,37 @@ body{
     padding: 1rem;
 }
 
-.page main .options, .page main .subMenu{
+.page main .options, .page main{
     display: flex;
     gap: var(--gap);
 }
 
+
+.page main .options li{
+    transition: 300ms ease-in-out;
+    z-index: 9999;
+}
+.page main .options li:hover{
+    transform: scale(1.1);
+}
+
+.page main .options button{
+    overflow: hidden;
+    border-radius: var(--borderRadius2);
+    width: 12rem;
+    height: 15rem;
+    padding: 0;
+}
+
+.page main .options button img{
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 /**  SETTINGS BLOCK **/
 .page .settings{
-    padding-top: 3.6rem;
+    padding-top: calc(2rem + 3.6rem);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -151,4 +261,15 @@ body{
 .page .settings .image-info p {
     opacity: 0.3;
     font-size: .8rem;
+}
+
+.page .settings .image-download{
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+}
+
+.page .settings .image-download button#btn-remove:hover{
+    background-color: var(--red);
 }
