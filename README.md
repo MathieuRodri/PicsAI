@@ -1,7 +1,6 @@
 # PicsAI
 
 # Code pour la segmentation
-
 ## Environnement
 ```ruby
 !pip install git+https://github.com/facebookresearch/segment-anything.git
