@@ -1,8 +1,8 @@
 # PicsAI
 
-#Code pour la segmentation
+# Code pour la segmentation
 
-##Environnement
+##E nvironnement
 ```ruby
 !pip install git+https://github.com/facebookresearch/segment-anything.git
 !pip install opencv-python pycocotools matplotlib onnxruntime onnx
@@ -26,7 +26,7 @@ sam = sam_model_registry["default"](checkpoint="/content/drive/MyDrive/sam_vit_h
 model = YOLO('yolov8m.pt')
 ```
 
-##Extraction des boundings boxes avec YOLOv8 :
+## Extraction des boundings boxes avec YOLOv8 :
 ```ruby
 IMAGE_PATH = '/content/th.jpg'
 image = cv2.imread(IMAGE_PATH)
@@ -60,7 +60,7 @@ for box in result.boxes:
 print(f"seleted {select_objet} : {select_bbox}")
 Image.fromarray(result.plot()[:,:,::-1])
 ```
-##Ajout des boundings boxes à SAM pour le filtrage des masques prédites par SAM:
+## Ajout des boundings boxes à SAM pour le filtrage des masques prédites par SAM:
 
 ```ruby
 boxes = np.array(select_bbox)
