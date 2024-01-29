@@ -15,6 +15,8 @@
 ## Introduction 🌟
 PicsAI est une application avancée de segmentation d'image utilisant l'apprentissage profond. Ce projet intègre YOLOv8 pour la détection d'objets et SAM (Segment-Anything Model) pour une segmentation d'image précise et détaillée.
 
+![preview](https://github.com/MathieuRodri/PicsAI/blob/main/screenshots/preview.png)
+
 ## À propos du projet 📘
 Le projet PicsAI a été développé par Zicheng Fang, Lazar Andjelovic, et Mathieu Rodrigues Domingues dans le cadre du Master 2 Vision et Machine Intelligente à l'Université Paris Cité. L'objectif est de créer une solution complète pour l'identification et la segmentation d'objets spécifiques dans des images, en utilisant YOLOv8 et SAM, deux modèles avancés d'apprentissage profond.
 
