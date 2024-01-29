@@ -1,4 +1,4 @@
-# PicsAIfzifhziohfioaz
+# PicsAI  
 
 # Code pour la segmentation
 ## Environnement
